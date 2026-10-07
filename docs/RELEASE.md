@@ -1,6 +1,6 @@
 Windows 10/11 x64 local file converter and compressor.
 
-Version 1.0.6 bundles dav1d 1.5.1 for software AV1 decoding and explicitly selects
+Version 1.0.7 bundles dav1d 1.5.1 for software AV1 decoding and explicitly selects
 it for conversion, preview and output validation. AV1 inputs no longer require an
 AV1-capable GPU. Real AV1-to-H.264 MP4 and AV1 remux regression tests are included.
 The Windows output-finalization fix and M4V regression coverage are retained.

@@ -14,11 +14,19 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - uses: actions/cache/restore@v4
+        id: compiled_backend
+        with:
+          path: |
+            vendor/windows-x64
+            build/previous-Setup.exe
+          key: native-backend-v2-${{ hashFiles('scripts/build_ffmpeg_windows.sh', 'scripts/restore_verified_vendor.py') }}
       - name: Restore previously source-built and verified FFmpeg
         id: vendor
+        if: steps.compiled_backend.outputs.cache-hit != 'true'
         run: python scripts/restore_verified_vendor.py
       - uses: msys2/setup-msys2@v2
-        if: steps.vendor.outputs.restored != 'true'
+        if: steps.compiled_backend.outputs.cache-hit != 'true' && steps.vendor.outputs.restored != 'true'
         with:
           msystem: MINGW64
           update: true
@@ -27,12 +35,16 @@ jobs:
             mingw-w64-x86_64-gcc mingw-w64-x86_64-pkgconf
             mingw-w64-x86_64-meson mingw-w64-x86_64-ninja
       - name: Build FFmpeg from pinned upstream sources
-        if: steps.vendor.outputs.restored != 'true'
+        if: steps.compiled_backend.outputs.cache-hit != 'true' && steps.vendor.outputs.restored != 'true'
         shell: msys2 {0}
         run: bash scripts/build_ffmpeg_windows.sh
       - name: Record vendor checksums and install app build dependencies
         run: |
-          python scripts/vendor_manifest.py vendor/windows-x64
+          if ('${{ steps.compiled_backend.outputs.cache-hit }}' -eq 'true') {
+            python scripts/restore_verified_vendor.py --verify-cache
+          } else {
+            python scripts/vendor_manifest.py vendor/windows-x64
+          }
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python -m pip install -e ".[dev]"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -42,9 +54,22 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python -m mypy src/fileconverter
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - uses: actions/cache/save@v4
+        if: steps.compiled_backend.outputs.cache-hit != 'true'
+        with:
+          path: |
+            vendor/windows-x64
+            build/previous-Setup.exe
+          key: ${{ steps.compiled_backend.outputs.cache-primary-key }}
       - name: Ensure Inno Setup compiler is installed
+        # Keep the checksummed source-built backend available even if app QA fails.
+        # Release publication remains gated by all Windows verification steps.
         run: |
           if (!(Test-Path "${env:ProgramFiles(x86)}/Inno Setup 6/ISCC.exe")) { choco install innosetup --yes --no-progress }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FileConverter-Source-Built-Backend
+          path: vendor/windows-x64
       - name: Build Windows executable, maintenance installer and complete release ZIP
         run: python scripts/build.py --vendor vendor/windows-x64 --installer
       - name: Verify actual installed app, repair and uninstall

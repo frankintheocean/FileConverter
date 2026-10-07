@@ -1,5 +1,5 @@
 param(
-    [string]$Installer = "$PSScriptRoot\..\artifacts\FileConverter-1.0.6-Windows-x64-Setup.exe",
+    [string]$Installer = "$PSScriptRoot\..\artifacts\FileConverter-1.0.7-Windows-x64-Setup.exe",
     [string]$PreviousInstaller = ''
 )
 $ErrorActionPreference = 'Stop'
@@ -26,7 +26,7 @@ Run-Setup
 if ($PreviousInstaller -ne '') {
     Assert-File (Join-Path $DataPath 'upgrade-preservation.txt')
     $version = Get-ItemProperty 'HKCU:\Software\FileConverter'
-    if ($version.Version -ne '1.0.6') { throw 'Upgrade version metadata incorrect' }
+    if ($version.Version -ne '1.0.7') { throw 'Upgrade version metadata incorrect' }
     $UpgradeVerified = $true
 }
 $Exe = Join-Path $InstallPath 'FileConverter.exe'
@@ -60,7 +60,7 @@ Remove-Item 'HKCU:\Software\FileConverter' -Recurse
 Run-Setup
 if ((Get-FileHash $Exe).Hash -ne $Hash) { throw 'Corrupted executable was not repaired' }
 $restored = Get-ItemProperty 'HKCU:\Software\FileConverter'
-if ($restored.Version -ne '1.0.6' -or [IO.Path]::GetFullPath($restored.InstallDir).TrimEnd('\') -ne $InstallPath) { throw 'Application metadata was not repaired' }
+if ($restored.Version -ne '1.0.7' -or [IO.Path]::GetFullPath($restored.InstallDir).TrimEnd('\') -ne $InstallPath) { throw 'Application metadata was not repaired' }
 Assert-File $Menu
 Assert-File $Desktop
 $diagnostics = Start-Process $Exe -ArgumentList '--diagnostics' -Wait -PassThru

@@ -256,9 +256,9 @@ To package just the complete project source on any development host:
 `python scripts/release_zip.py --source-only`. This source ZIP is explicitly distinct
 from the Windows ZIP containing an actual built installer.
 
-Download the Windows bundle: https://github.com/frankintheocean/FileConverter/releases/download/v1.0.6/FileConverter-1.0.6-Windows-x64.zip
+Download the Windows bundle: https://github.com/frankintheocean/FileConverter/releases/download/v1.0.7/FileConverter-1.0.7-Windows-x64.zip
 
-Version 1.0.6 includes CPU AV1 decoding using dav1d; AV1 videos can be converted,
+Version 1.0.7 includes CPU AV1 decoding using dav1d; AV1 videos can be converted,
 previewed and validated without an AV1-capable GPU. Older backends without a software
 AV1 decoder produce a clear dependency error during planning.
 

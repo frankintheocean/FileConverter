@@ -1,5 +1,6 @@
 """Reuse our previously verified native FFmpeg build, pinned by complete release SHA256."""
 
+import argparse
 import hashlib
 import os
 import shutil
@@ -18,8 +19,15 @@ SHA256 = "8f00b14cb26952cb842e3514058333170cfa27c2d37d2a0e9dea2a5cbf2b3a78"
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--verify-cache", action="store_true")
+    args = parser.parse_args()
     if os.name != "nt":
         raise SystemExit("Vendor restoration is for the native Windows build")
+    if args.verify_cache:
+        verify_vendor(ROOT / "vendor/windows-x64")
+        print("Verified cached native backend against all recorded checksums.")
+        return
     build = ROOT / "build"
     build.mkdir(exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="vendor-cache-", dir=build) as directory:

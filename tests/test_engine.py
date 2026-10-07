@@ -67,7 +67,7 @@ def test_remux(media, convert):
     assert job.plan["codec"] == "copy"
 
 
-def test_av1_software_conversion_and_preview(cap, engine, convert, tmp_path):
+def test_av1_software_conversion_and_preview(cap, engine, convert, monkeypatch):
     source = Path(__file__).parent / "assets/av1.mkv"
     info = engine.detector.inspect(source)
     decoder = cap.decoding_arguments(info)
@@ -76,6 +76,7 @@ def test_av1_software_conversion_and_preview(cap, engine, convert, tmp_path):
     assert job.result["valid"]
     assert engine.detector.inspect(job.output).video_codec == "h264"
     assert engine.preview(info, threading.Event())
+    monkeypatch.setattr(cap, "encoders", cap.encoders - {"libaom-av1"})
     remux = convert(source, format="mkv", remux=True)
     assert remux.result["valid"]
     assert engine.detector.inspect(remux.output).video_codec == "av1"

@@ -269,7 +269,9 @@ class Planner:
                 )
                 if changed:
                     raise ValueError("Remux cannot apply edits or size targets. Turn off remux.")
-                compatible = {CODEC_NAMES.get(c, c) for c in codecs}
+                # Stream copy needs a compatible muxer, not an installed encoder.
+                container_codecs = (VIDEO if category == "video" else AUDIO)[fmt][1]
+                compatible = {CODEC_NAMES.get(c, c) for c in container_codecs}
                 source_codec = info.video_codec if category == "video" else info.audio_codec
                 if source_codec not in compatible:
                     raise ValueError("Source codec cannot be copied into this container")
