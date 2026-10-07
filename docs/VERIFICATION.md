@@ -145,3 +145,31 @@ Published checksum and all ZIP CRCs were verified after download.
 Remaining manual checks concern visual taskbar/DPI/accessibility/notification behavior
 and interrupted installation. The installer is unsigned. Optional LibreOffice and
 additional codec/hardware availability remain installation dependent.
+
+## Verified Windows 1.0.5 regression release
+
+Native Windows run: https://github.com/frankintheocean/FileConverter/actions/runs/37595632496
+
+Windows output finalization now uses atomic, non-overwriting rename rather than
+requiring hard links. This fixes `WinError 1` on filesystems that reject hard links.
+Regression coverage includes a real M4V-to-MP4 conversion, an unsupported-hard-link
+fault, preservation of the original and protection of existing destinations.
+The local complete suite passed 107 tests; formatting, lint and type checks passed.
+The native Windows suite passed three UI tests and four conversion/collision tests.
+
+Native installer gates passed install, upgrade, repair of missing/corrupt application
+files and damaged FFmpeg, shortcut/metadata repair, uninstall, reinstall and preservation
+of user data and converted outputs. The actual executable icon matched all nine custom
+ICO images. FFmpeg/ffprobe 7.1.5 and image backends were detected without errors;
+the bundled software build correctly reported no hardware encoders.
+
+Actual native M4V-to-MP4 output: 172,796 bytes, reopened and validated. MOV, GIF,
+extracted PNG and MP3 conversions also passed. Maximum-size outputs remained
+9,067,528 bytes under 10,000,000 and 22,883,065 under 25,000,000.
+
+The published Windows ZIP includes installer, application, engines, full source,
+licenses and all four native verification reports. Downloaded size: 201,328,075 bytes.
+SHA256: `6e0ede54fc806e43ed7d5eb0408b2074aee065ed864fab55536e1a9d2197a6c6`.
+The published checksum and every ZIP CRC were verified after download.
+Physical FAT/exFAT/network-drive testing and the manual visual checks listed above
+were not performed; unsupported-hard-link behavior was exercised through fault injection.
