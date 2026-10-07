@@ -35,3 +35,6 @@ python_version = "3.12"
 platform = "win32"
 ignore_missing_imports = true
 check_untyped_defs = true
+
+[tool.ruff.lint.isort]
+known-first-party = ["fileconverter", "build"]
