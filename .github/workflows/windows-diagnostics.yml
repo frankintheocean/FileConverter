@@ -20,7 +20,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          INSPECT_RUN: ${{ inputs.run_id || '37576021889' }}
+          INSPECT_RUN: ${{ inputs.run_id || '37611198936' }}
         shell: bash
         run: |
           gh run view "$INSPECT_RUN" --log-failed > /tmp/windows-failure.log
