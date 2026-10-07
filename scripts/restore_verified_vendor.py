@@ -14,8 +14,8 @@ from pathlib import Path, PurePosixPath
 
 from build import ROOT, verify_vendor
 
-URL = "https://github.com/frankintheocean/FileConverter/releases/download/v1.0.1/FileConverter-1.0.1-Windows-x64.zip"
-SHA256 = "8f00b14cb26952cb842e3514058333170cfa27c2d37d2a0e9dea2a5cbf2b3a78"
+URL = "https://github.com/frankintheocean/FileConverter/releases/download/v1.0.7/FileConverter-1.0.7-Windows-x64.zip"
+SHA256 = "ee7bf571c506bcb8dd0e487a1d882f4f3b400ef938a9e9d7e9e7a3cf623363d1"
 
 
 def main():
@@ -70,7 +70,7 @@ def main():
                 destination.parent.mkdir(parents=True, exist_ok=True)
                 with archive.open(entry) as source, destination.open("wb") as output:
                     shutil.copyfileobj(source, output, length=1024 * 1024)
-            previous = "FileConverter-1.0.1-Windows-x64-Setup.exe"
+            previous = "FileConverter-1.0.7-Windows-x64-Setup.exe"
             with (
                 archive.open(previous) as source,
                 (build / "previous-Setup.exe").open("wb") as output,

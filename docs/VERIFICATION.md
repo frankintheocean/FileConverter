@@ -173,3 +173,35 @@ SHA256: `6e0ede54fc806e43ed7d5eb0408b2074aee065ed864fab55536e1a9d2197a6c6`.
 The published checksum and every ZIP CRC were verified after download.
 Physical FAT/exFAT/network-drive testing and the manual visual checks listed above
 were not performed; unsupported-hard-link behavior was exercised through fault injection.
+
+## Verified Windows 1.0.7 AV1 release
+
+Native Windows run: https://github.com/frankintheocean/FileConverter/actions/runs/37614867567
+
+FFmpeg/ffprobe 7.1.5 now include source-built dav1d 1.5.1, pinned to commit
+`42b2b24fb8819f1ed3643aa9cf2a62f03868e3aa`. Conversion, preview and validation
+explicitly select software AV1 decoding. Missing software decoders produce an
+actionable planning error. Remux compatibility checks container support without
+requiring an encoder for the copied codec.
+
+The local complete suite passed 109 tests, plus lint, format and type checks.
+The native Windows suite passed three UI tests and six conversion regressions,
+with zero skips or failures. AV1-to-H.264 MP4 conversion, preview and validated AV1
+remux passed with no AV1 encoder installed. A separate local AV1-in-M4V-to-MP4
+check also passed using dav1d. The test media is original generated content.
+
+Actual native AV1-to-MP4 output: 3,944 bytes, reopened and fully decoded. M4V-to-MP4,
+MOV, GIF, frame extraction and MP3 conversion also passed. Maximum-size video outputs
+were 9,067,528 bytes under 10,000,000 and 22,883,065 under 25,000,000.
+Native clean install, upgrade, missing/corrupt-file and dependency repair,
+shortcut/metadata repair, uninstall and reinstall passed. Settings, presets,
+queued work, source files and outputs were preserved. All nine original executable
+icon images matched. FFmpeg/ffprobe and image dependencies were detected without
+errors; the software build correctly reported no hardware encoders.
+
+The Windows ZIP includes Setup, runtime, complete application and engine sources,
+dav1d's BSD license, other dependency notices and all native QA reports.
+Downloaded size: 206,424,246 bytes. SHA256:
+`ee7bf571c506bcb8dd0e487a1d882f4f3b400ef938a9e9d7e9e7a3cf623363d1`.
+The published checksum and every ZIP CRC were verified after download.
+The unsigned-installer and manual visual/platform limitations listed above remain.
