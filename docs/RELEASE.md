@@ -1,5 +1,9 @@
 Windows 10/11 x64 local file converter and compressor.
 
+Version 1.0.5 fixes Windows “Incorrect function” errors when publishing converted
+files on drives without hard-link support. Finalization now uses Windows atomic,
+non-overwriting rename. M4V-to-MP4 conversion has dedicated regression coverage.
+
 Download the Windows-x64 ZIP, extract it, and run the included Setup executable.
 The ZIP includes the installer, application runtime, FFmpeg conversion engines,
 complete project source, documentation and dependency notices. End users do not

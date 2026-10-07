@@ -255,4 +255,9 @@ To package just the complete project source on any development host:
 `python scripts/release_zip.py --source-only`. This source ZIP is explicitly distinct
 from the Windows ZIP containing an actual built installer.
 
-Download the verified Windows bundle: https://github.com/frankintheocean/FileConverter/releases/download/v1.0.4/FileConverter-1.0.4-Windows-x64.zip
+Download the Windows bundle: https://github.com/frankintheocean/FileConverter/releases/download/v1.0.5/FileConverter-1.0.5-Windows-x64.zip
+
+Version 1.0.5 fixes Windows `Incorrect function` errors on destinations without
+hard-link support. Validated files are finalized using atomic Windows rename,
+which preserves collision protection. Real M4V-to-MP4 conversions are covered by
+Linux and native Windows regression checks.

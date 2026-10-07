@@ -1,4 +1,5 @@
 import dataclasses
+import errno
 import threading
 import time
 from pathlib import Path
@@ -16,6 +17,7 @@ from fileconverter.planner import target_bitrate
     [
         ("mp4", "mov"),
         ("mov", "mp4"),
+        ("m4v", "mp4"),
         ("mkv", "mp4"),
         ("mp4", "webm"),
         ("mp4", "gif"),
@@ -221,6 +223,36 @@ def test_collision_and_no_clobber(tmp_path):
     assert output.read_text() == "keep"
     with pytest.raises(ValueError):
         choose_output(source, tmp_path, dataclasses.replace(options, suffix=""))
+
+
+def test_m4v_conversion_on_filesystem_without_hardlinks(media, convert, monkeypatch):
+    def unsupported_link(*args, **kwargs):
+        error = OSError(errno.EINVAL, "Incorrect function")
+        error.winerror = 1
+        raise error
+
+    monkeypatch.setattr("fileconverter.engine.os.link", unsupported_link)
+    original = media["m4v"].read_bytes()
+    job = convert(media["m4v"], format="mp4", encoder_preset="ultrafast")
+    assert job.result["valid"]
+    assert media["m4v"].read_bytes() == original
+
+
+def test_unsupported_hardlink_preserves_existing_output(tmp_path, monkeypatch):
+    def unsupported_link(*args, **kwargs):
+        error = OSError(errno.EINVAL, "Incorrect function")
+        error.winerror = 1
+        raise error
+
+    monkeypatch.setattr("fileconverter.engine.os.link", unsupported_link)
+    source = tmp_path / "validated.mp4"
+    source.write_bytes(b"new")
+    destination = tmp_path / "existing.mp4"
+    destination.write_bytes(b"keep")
+    with pytest.raises(FileExistsError):
+        publish(source, destination)
+    assert source.read_bytes() == b"new"
+    assert destination.read_bytes() == b"keep"
 
 
 def test_persistence(engine, media, tmp_path):

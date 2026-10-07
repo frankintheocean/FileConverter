@@ -49,6 +49,7 @@ def main():
                 "windows-verification.json",
                 "windows-installer-verification.json",
                 "windows-ui-tests.xml",
+                "windows-regression-tests.xml",
             ):
                 verification = artifacts / name
                 if verification.is_file():

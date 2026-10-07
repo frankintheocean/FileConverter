@@ -87,11 +87,18 @@ def publish(temp, final, replace=False):
             shutil.rmtree(final)
             raise
     else:
+        if os.name == "nt":
+            # Windows rename is atomic and refuses an existing destination, including
+            # on FAT/exFAT volumes that reject hard links with ERROR_INVALID_FUNCTION.
+            os.rename(temp, final)
+            return
         try:
             os.link(temp, final)
             Path(temp).unlink()
         except OSError as error:
-            if error.errno not in (errno.EPERM, errno.ENOTSUP, errno.EOPNOTSUPP):
+            if error.errno not in (errno.EPERM, errno.ENOTSUP, errno.EOPNOTSUPP) and getattr(
+                error, "winerror", None
+            ) not in (1, 50):  # ERROR_INVALID_FUNCTION / ERROR_NOT_SUPPORTED
                 raise
             # Filesystems without hardlinks: create exclusively, preserving no-overwrite.
             try:

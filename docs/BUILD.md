@@ -32,7 +32,7 @@ Outputs:
 
 - `dist/FileConverter/FileConverter.exe`, Qt/Python shared runtime, vendored engines,
   icon assets and dependency license notices.
-- `artifacts/FileConverter-1.0.4-Windows-x64-Setup.exe`.
+- `artifacts/FileConverter-1.0.5-Windows-x64-Setup.exe`.
 
 End users need neither Python nor development tools. LibreOffice is an optional
 separate dependency; unavailable Office conversion pairs are hidden. Documents

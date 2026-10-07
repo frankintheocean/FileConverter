@@ -39,7 +39,7 @@ def engine(tmp_path, cap, runner):
 def media(tmp_path_factory, cap, runner):
     folder = tmp_path_factory.mktemp("media")
     paths = {}
-    for ext in ("mp4", "mov", "mkv"):
+    for ext in ("mp4", "mov", "mkv", "m4v"):
         path = folder / f"source.{ext}"
         runner.run(
             [
@@ -63,6 +63,8 @@ def media(tmp_path_factory, cap, runner):
                 "ultrafast",
                 "-c:a",
                 "aac",
+                "-f",
+                {"m4v": "mp4", "mkv": "matroska"}.get(ext, ext),
                 str(path),
             ]
         )

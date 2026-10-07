@@ -55,6 +55,8 @@ jobs:
           $env:QT_QPA_PLATFORM = 'offscreen'
           python -m pytest -q tests/test_ui.py --junitxml=artifacts/windows-ui-tests.xml
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -m pytest -q tests/test_engine.py -k 'm4v or collision or unsupported_hardlink' --junitxml=artifacts/windows-regression-tests.xml
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python scripts/release_zip.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - uses: actions/upload-artifact@v4
@@ -67,6 +69,7 @@ jobs:
             artifacts/windows-verification.json
             artifacts/windows-installer-verification.json
             artifacts/windows-ui-tests.xml
+            artifacts/windows-regression-tests.xml
       - name: Publish verified Windows release
         shell: bash
         if: startsWith(github.ref, 'refs/tags/v')

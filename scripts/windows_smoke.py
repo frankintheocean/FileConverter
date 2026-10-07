@@ -94,6 +94,10 @@ with tempfile.TemporaryDirectory(prefix="FileConverter café QA ") as directory:
             ]
         )
         audio = folder / "audio.wav"
+        m4v = folder / "Video café.m4v"
+        runner.run(
+            [cap.ffmpeg, "-v", "error", "-i", str(video), "-c", "copy", "-f", "ipod", str(m4v)]
+        )
         runner.run(
             [
                 cap.ffmpeg,
@@ -107,6 +111,7 @@ with tempfile.TemporaryDirectory(prefix="FileConverter café QA ") as directory:
             ]
         )
         cases = [
+            (m4v, Options(format="mp4")),
             (video, Options(format="mov")),
             (video, Options(format="gif", width=320)),
             (video, Options(format="png", operation="frame")),
