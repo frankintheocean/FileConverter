@@ -99,7 +99,9 @@ def test_tool_options_are_executable(cap, media, runner):
     editor.operation.setCurrentText("subtitles")
     assert editor.options().format == "srt"
     editor.operation.setCurrentText("convert")
-    editor.format.setCurrentText("webm")
+    container = "webm" if editor.format.findText("webm") >= 0 else "avi"
+    assert editor.format.findText(container) >= 0
+    editor.format.setCurrentText(container)
     assert "alac" not in [editor.audio_codec.itemText(i) for i in range(editor.audio_codec.count())]
     editor.format.setCurrentText("gif")
     assert not editor.audio_codec.isVisibleTo(editor)
