@@ -312,6 +312,8 @@ class Planner:
                 plan["width"], plan["height"] = dimensions(info, options)
                 if target and fmt not in ("jpg", "jpeg", "webp", "avif"):
                     raise ValueError("Image target-size compression requires JPEG, WebP, or AVIF")
+        if plan["backend"] == "FFmpeg":
+            plan["input_decoder_arguments"] = self.cap.decoding_arguments(info)
         return plan
 
     def arguments(self, info, options, plan, output, work, pass_number=0):
@@ -327,6 +329,7 @@ class Planner:
         ]
         if options.trim_start:
             args += ["-ss", str(options.trim_start)]
+        args += self.cap.decoding_arguments(info)
         args += [
             "-protocol_whitelist",
             "file,pipe,crypto,data",

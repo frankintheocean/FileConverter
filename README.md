@@ -243,9 +243,9 @@ Installed Apps also provides normal uninstall. An explicit source-folder output 
 protects originals by retaining the conversion suffix and safe collision behavior.
 
 `.github/workflows/windows-release.yml` builds on a native Windows runner, including
-FFmpeg 7.1.5, x264, LAME and zlib from pinned upstream source commits. The complete
+FFmpeg 7.1.5, x264, LAME, zlib and dav1d 1.5.1 from pinned upstream source commits. The complete
 corresponding engine source is bundled. This baseline includes software H.264, AAC,
-MP3, FLAC, PCM, GIF and PNG capabilities; optional encoders such as HEVC, VP9, AV1 or
+MP3, FLAC, PCM, GIF, PNG and software AV1 decoding capabilities; optional encoders such as HEVC, VP9, AV1 or
 hardware encoders are exposed only when present in a different audited FFmpeg bundle.
 Publishing a `v*` tag runs native build, install, repair, uninstall, reinstall and
 real conversion/maximum-size smoke checks before creating a GitHub release ZIP.
@@ -256,7 +256,11 @@ To package just the complete project source on any development host:
 `python scripts/release_zip.py --source-only`. This source ZIP is explicitly distinct
 from the Windows ZIP containing an actual built installer.
 
-Download the Windows bundle: https://github.com/frankintheocean/FileConverter/releases/download/v1.0.5/FileConverter-1.0.5-Windows-x64.zip
+Download the Windows bundle: https://github.com/frankintheocean/FileConverter/releases/download/v1.0.6/FileConverter-1.0.6-Windows-x64.zip
+
+Version 1.0.6 includes CPU AV1 decoding using dav1d; AV1 videos can be converted,
+previewed and validated without an AV1-capable GPU. Older backends without a software
+AV1 decoder produce a clear dependency error during planning.
 
 Version 1.0.5 fixes Windows `Incorrect function` errors on destinations without
 hard-link support. Validated files are finalized using atomic Windows rename,

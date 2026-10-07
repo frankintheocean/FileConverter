@@ -213,6 +213,26 @@ class Capabilities:
         for codec in sorted(codecs & self.encoders):
             self.encoder_details(codec)
 
+    def decoding_arguments(self, info):
+        """Select CPU AV1 decoding explicitly; the native av1 decoder needs hardware."""
+        args = []
+        video_index = 0
+        for stream in info.streams:
+            if stream.get("codec_type") != "video":
+                continue
+            if stream.get("codec_name") == "av1":
+                decoder = next(
+                    (name for name in ("libdav1d", "libaom-av1") if name in self.decoders), None
+                )
+                if not decoder:
+                    raise ValueError(
+                        "This FFmpeg build lacks a software AV1 decoder. Update FileConverter "
+                        "or use an FFmpeg build with libdav1d or libaom-av1."
+                    )
+                args += [f"-c:v:{video_index}", decoder]
+            video_index += 1
+        return args
+
     def codecs(self, fmt, category):
         policy = VIDEO if category == "video" else AUDIO
         if fmt not in policy:

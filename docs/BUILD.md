@@ -32,7 +32,7 @@ Outputs:
 
 - `dist/FileConverter/FileConverter.exe`, Qt/Python shared runtime, vendored engines,
   icon assets and dependency license notices.
-- `artifacts/FileConverter-1.0.5-Windows-x64-Setup.exe`.
+- `artifacts/FileConverter-1.0.6-Windows-x64-Setup.exe`.
 
 End users need neither Python nor development tools. LibreOffice is an optional
 separate dependency; unavailable Office conversion pairs are hidden. Documents
@@ -75,7 +75,7 @@ Linux tests cannot establish Windows desktop behavior.
 ## Reproducible native CI build
 
 The Windows workflow builds the vendor bundle with MSYS2/MinGW64 using
-`scripts/build_ffmpeg_windows.sh`, pinned FFmpeg/x264/LAME/zlib commits and static
+`scripts/build_ffmpeg_windows.sh`, pinned FFmpeg/x264/LAME/zlib/dav1d commits and static
 linking. The build stores pristine corresponding source plus the recipe in
 `SOURCE.tar.xz`, generates checksums and verifies the resulting executables before
 PyInstaller/Inno packaging. No executable is fetched from an arbitrary release mirror.

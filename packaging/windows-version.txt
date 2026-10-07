@@ -1,13 +1,13 @@
 VSVersionInfo(
-  ffi=FixedFileInfo(filevers=(1,0,5,0), prodvers=(1,0,5,0), mask=0x3f, flags=0x0,
+  ffi=FixedFileInfo(filevers=(1,0,6,0), prodvers=(1,0,6,0), mask=0x3f, flags=0x0,
                    OS=0x40004, fileType=0x1, subtype=0x0, date=(0,0)),
   kids=[StringFileInfo([StringTable('040904B0', [
     StringStruct('CompanyName','FileConverter Contributors'),
     StringStruct('FileDescription','FileConverter — Local file conversion'),
-    StringStruct('FileVersion','1.0.5'),
+    StringStruct('FileVersion','1.0.6'),
     StringStruct('InternalName','FileConverter'),
     StringStruct('LegalCopyright','GPL-3.0 FileConverter Contributors'),
     StringStruct('OriginalFilename','FileConverter.exe'),
     StringStruct('ProductName','FileConverter'),
-    StringStruct('ProductVersion','1.0.5')])]),
+    StringStruct('ProductVersion','1.0.6')])]),
     VarFileInfo([VarStruct('Translation',[1033,1200])])])

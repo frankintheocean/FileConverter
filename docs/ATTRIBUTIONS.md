@@ -14,6 +14,7 @@ Runtime dependencies:
 | watchdog | https://github.com/gorakhargosh/watchdog | Apache-2.0 |
 | Send2Trash | https://github.com/arsenetar/send2trash | BSD-3-Clause |
 | FFmpeg / ffprobe | https://ffmpeg.org/ | LGPL-2.1+ or GPL-2.0+/GPL-3.0+ depending on build flags |
+| dav1d (bundled software AV1 decoder) | https://github.com/videolan/dav1d | BSD-2-Clause |
 | LibreOffice (optional, separately installed) | https://www.libreoffice.org/ | MPL-2.0 / LGPL-3.0+ |
 
 Build dependencies: PyInstaller (GPL with distribution exception), pytest (MIT),

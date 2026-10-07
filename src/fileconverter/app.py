@@ -80,7 +80,7 @@ def main():
 
     app = QApplication(sys.argv[:1])
     app.setApplicationName("FileConverter")
-    app.setApplicationVersion("1.0.5")
+    app.setApplicationVersion("1.0.6")
     app.setOrganizationName("FileConverter")
     app.setStyle("Fusion")
     lock = QLockFile(str(store.root / "app.lock"))

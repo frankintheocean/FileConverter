@@ -70,6 +70,8 @@ with tempfile.TemporaryDirectory(prefix="FileConverter café QA ") as directory:
     store = Store(folder / "engine-state")
     runner = Runner()
     cap = Capabilities(runner, store)
+    if "libdav1d" not in cap.decoders:
+        raise RuntimeError("Bundled software AV1 decoder is missing")
     engine = Engine(store, cap, runner)
     try:
         video = folder / "Video & Unicode café.mp4"
@@ -111,6 +113,10 @@ with tempfile.TemporaryDirectory(prefix="FileConverter café QA ") as directory:
             ]
         )
         cases = [
+            (
+                Path(__file__).resolve().parent.parent / "tests/assets/av1.mkv",
+                Options(format="mp4"),
+            ),
             (m4v, Options(format="mp4")),
             (video, Options(format="mov")),
             (video, Options(format="gif", width=320)),

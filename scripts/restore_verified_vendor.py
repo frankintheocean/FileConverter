@@ -4,6 +4,7 @@ import hashlib
 import os
 import shutil
 import stat
+import subprocess
 import tempfile
 import urllib.error
 import urllib.request
@@ -68,6 +69,19 @@ def main():
             ):
                 shutil.copyfileobj(source, output, length=1024 * 1024)
         verify_vendor(vendor)
+        decoders = subprocess.run(
+            [str(vendor / "ffmpeg.exe"), "-hide_banner", "-decoders"],
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=30,
+        ).stdout
+        if "libdav1d" not in decoders:
+            print("Prior verified backend lacks software AV1 decoding; rebuilding pinned sources.")
+            if os.environ.get("GITHUB_OUTPUT"):
+                with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+                    output.write("restored=false\n")
+            return
         shutil.copytree(vendor, ROOT / "vendor/windows-x64", dirs_exist_ok=True)
     if os.environ.get("GITHUB_OUTPUT"):
         with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:

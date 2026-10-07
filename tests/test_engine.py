@@ -67,6 +67,28 @@ def test_remux(media, convert):
     assert job.plan["codec"] == "copy"
 
 
+def test_av1_software_conversion_and_preview(cap, engine, convert, tmp_path):
+    source = Path(__file__).parent / "assets/av1.mkv"
+    info = engine.detector.inspect(source)
+    decoder = cap.decoding_arguments(info)
+    assert decoder[1] in ("libdav1d", "libaom-av1")
+    job = convert(source, format="mp4", encoder_preset="ultrafast")
+    assert job.result["valid"]
+    assert engine.detector.inspect(job.output).video_codec == "h264"
+    assert engine.preview(info, threading.Event())
+    remux = convert(source, format="mkv", remux=True)
+    assert remux.result["valid"]
+    assert engine.detector.inspect(remux.output).video_codec == "av1"
+
+
+def test_av1_without_software_decoder_has_actionable_error(cap, engine, monkeypatch):
+    source = Path(__file__).parent / "assets/av1.mkv"
+    info = engine.detector.inspect(source)
+    monkeypatch.setattr(cap, "decoders", {"av1", "av1_qsv"})
+    with pytest.raises(ValueError, match="lacks a software AV1 decoder"):
+        engine.planner.plan(info, Options(format="mp4"))
+
+
 @pytest.mark.parametrize("maximum", [10_000_000, 25_000_000])
 def test_video_size_limits(tmp_path, cap, runner, convert, maximum):
     source = tmp_path / "large.mkv"
