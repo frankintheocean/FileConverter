@@ -1,5 +1,5 @@
 param(
-    [string]$Installer = "$PSScriptRoot\..\artifacts\FileConverter-1.0.2-Windows-x64-Setup.exe",
+    [string]$Installer = "$PSScriptRoot\..\artifacts\FileConverter-1.0.3-Windows-x64-Setup.exe",
     [string]$PreviousInstaller = ''
 )
 $ErrorActionPreference = 'Stop'
@@ -26,7 +26,7 @@ Run-Setup
 if ($PreviousInstaller -ne '') {
     Assert-File (Join-Path $DataPath 'upgrade-preservation.txt')
     $version = Get-ItemProperty 'HKCU:\Software\FileConverter'
-    if ($version.Version -ne '1.0.2') { throw 'Upgrade version metadata incorrect' }
+    if ($version.Version -ne '1.0.3') { throw 'Upgrade version metadata incorrect' }
     $UpgradeVerified = $true
 }
 $Exe = Join-Path $InstallPath 'FileConverter.exe'
@@ -60,7 +60,7 @@ Remove-Item 'HKCU:\Software\FileConverter' -Recurse
 Run-Setup
 if ((Get-FileHash $Exe).Hash -ne $Hash) { throw 'Corrupted executable was not repaired' }
 $restored = Get-ItemProperty 'HKCU:\Software\FileConverter'
-if ($restored.Version -ne '1.0.2' -or [IO.Path]::GetFullPath($restored.InstallDir).TrimEnd('\') -ne $InstallPath) { throw 'Application metadata was not repaired' }
+if ($restored.Version -ne '1.0.3' -or [IO.Path]::GetFullPath($restored.InstallDir).TrimEnd('\') -ne $InstallPath) { throw 'Application metadata was not repaired' }
 Assert-File $Menu
 Assert-File $Desktop
 $diagnostics = Start-Process $Exe -ArgumentList '--diagnostics' -Wait -PassThru
@@ -84,4 +84,4 @@ $report = @{
 }
 $report | ConvertTo-Json | Set-Content -Encoding utf8 (Join-Path $PSScriptRoot '../artifacts/windows-installer-verification.json')
 Write-Output 'Install, missing/corrupt executable and dependency repair, shortcuts/metadata, uninstall, reinstall and data preservation passed.'
-Write-Output 'Interactive icon, taskbar, wizard maintenance and upgrade validation still require manual checks.'
+Write-Output 'Visual taskbar, DPI/accessibility and interactive maintenance checks still require manual review.'

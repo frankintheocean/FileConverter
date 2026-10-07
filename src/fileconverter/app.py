@@ -80,7 +80,7 @@ def main():
 
     app = QApplication(sys.argv[:1])
     app.setApplicationName("FileConverter")
-    app.setApplicationVersion("1.0.2")
+    app.setApplicationVersion("1.0.3")
     app.setOrganizationName("FileConverter")
     app.setStyle("Fusion")
     lock = QLockFile(str(store.root / "app.lock"))
@@ -121,6 +121,7 @@ def main():
 
     def connected():
         socket = server.nextPendingConnection()
+        socket.disconnected.connect(socket.deleteLater)
 
         def received():
             command = socket.readAll().data()

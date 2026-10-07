@@ -71,7 +71,7 @@ The downloaded 201,323,295-byte Windows ZIP matched its published SHA256 and pas
 Inno Setup source,
 PE metadata, vendor integrity checks and `scripts/windows_verify.ps1` are supplied;
 the first automated native install/repair/uninstall/reinstall and real conversion/size checks passed.
-Version 1.0.2 adds upgrade, damaged-executable/metadata repair, native UI and actual PE icon checks.
+Version 1.0.3 adds upgrade, damaged-executable/metadata repair, native UI and actual PE icon checks.
 Interactive items still require a Windows 10/11 x64 runner:
 
 - Native executable/installer build and actual installed launch.
@@ -111,7 +111,7 @@ Its actual conversions produced MOV (172,743 bytes), GIF (405,574 bytes), extrac
 (51,182 bytes), MP3 (82,590 bytes), and validated 10 MB/25 MB maximum outputs of
 9,067,528 / 22,883,065 bytes. Installed desktop startup, focus and safe shutdown passed.
 
-Final 1.0.2 native results are carried in `verification/windows-verification.json`,
+Final 1.0.3 native results are carried in `verification/windows-verification.json`,
 `verification/windows-installer-verification.json` and `verification/windows-ui-tests.xml`
 in the actual Windows ZIP. Release publication is blocked unless each native command
 succeeds; a later packaging command cannot mask failed verification. The cached backend

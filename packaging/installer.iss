@@ -1,4 +1,4 @@
-#define ProductVersion "1.0.2"
+#define ProductVersion "1.0.3"
 #define AppGuid "{A6B86057-4065-44EC-B12E-EC867BE5C486}"
 
 [Setup]

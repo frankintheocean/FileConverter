@@ -3,6 +3,12 @@ on:
   push:
     branches: [main]
     paths: ['.github/workflows/windows-diagnostics.yml']
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: Completed Windows workflow run to inspect
+        required: true
+        type: string
 permissions:
   actions: read
   contents: read
@@ -14,9 +20,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
+          INSPECT_RUN: ${{ inputs.run_id || '37574331152' }}
         shell: bash
         run: |
-          gh run view 37574331152 --log-failed > /tmp/windows-failure.log
+          gh run view "$INSPECT_RUN" --log-failed > /tmp/windows-failure.log
           tail -80 /tmp/windows-failure.log > /tmp/windows-summary.log
           python3 - <<'PY'
           from pathlib import Path

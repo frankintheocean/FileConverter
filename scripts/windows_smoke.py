@@ -181,4 +181,5 @@ with tempfile.TemporaryDirectory(prefix="FileConverter café QA ") as directory:
         print("Native Windows conversions, maximum sizes and installed desktop lifecycle: PASS")
     finally:
         runner.close()
+        engine.close()
         store.close()
