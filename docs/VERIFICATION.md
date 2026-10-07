@@ -117,3 +117,31 @@ in the actual Windows ZIP. Release publication is blocked unless each native com
 succeeds; a later packaging command cannot mask failed verification. The cached backend
 is our previously source-built release, verified against a pinned whole-ZIP checksum
 and all vendor file checksums before executing it; its complete engine source is retained.
+
+
+## Final verified Windows 1.0.4 release
+
+Native Windows run: https://github.com/frankintheocean/FileConverter/actions/runs/37579066122
+
+All release gates executed successfully: executable/installer build, clean install,
+upgrade from 1.0.1, repair of missing and corrupt executable files, damaged FFmpeg,
+missing shortcuts and missing application metadata, uninstall, reinstall and retention
+of actual user preferences, custom presets, a queued job, source files and outputs.
+The installed desktop started, focused and shut down cleanly. All three native Qt UI
+tests passed, including explicit chosen/source-folder destination behavior. The
+executable's first icon group matched all nine original ICO images byte for byte.
+
+Actual native conversions: MOV 172,743 bytes; GIF 405,574 bytes; extracted PNG 51,182
+bytes; MP3 82,590 bytes. Video outputs were 9,067,528 bytes under 10,000,000 and
+22,883,065 bytes under 25,000,000. Reports are included in the Windows ZIP.
+The local complete suite passed 104 tests; lint, format and type checks passed.
+
+The downloaded Windows ZIP contains the real Setup executable, application/runtime,
+conversion engines, complete project source, notices and native QA reports. It is
+201,338,978 bytes; SHA256:
+`aa157c9ae6c06cea6e5b1a73ff9607e65b3f4ddbcafa5e7eee9b40b362f65932`.
+Published checksum and all ZIP CRCs were verified after download.
+
+Remaining manual checks concern visual taskbar/DPI/accessibility/notification behavior
+and interrupted installation. The installer is unsigned. Optional LibreOffice and
+additional codec/hardware availability remain installation dependent.

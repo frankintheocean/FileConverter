@@ -224,10 +224,13 @@ notification availability depends on OS tray/notification configuration.
 ## Verification
 
 See [the verification report](docs/VERIFICATION.md) for the checks actually executed.
-Windows installation, repair, uninstall, shell icon rendering and interactive
-accessibility/DPI require a Windows runner. Source configuration is not evidence that
-those flows have executed. Do not publish as a verified Windows production release
-until the Windows verification and release checklist have passed.
+The 1.0.4 Windows release was actually built and tested on a native Windows runner:
+install, upgrade, missing/corrupt-file and metadata repair, uninstall/reinstall,
+user-data preservation, real conversions, size limits, custom executable icons and
+three native UI tests passed. The downloadable ZIP includes Setup, the app/runtime,
+engines, full source and verification reports. Visual DPI/accessibility/notification
+behavior and interrupted-install scenarios still need interactive review. The installer
+is unsigned; no publisher certificate is configured.
 
 
 ## Windows ZIP release
@@ -251,3 +254,5 @@ this project's automated build does not invent a signing certificate.
 To package just the complete project source on any development host:
 `python scripts/release_zip.py --source-only`. This source ZIP is explicitly distinct
 from the Windows ZIP containing an actual built installer.
+
+Download the verified Windows bundle: https://github.com/frankintheocean/FileConverter/releases/download/v1.0.4/FileConverter-1.0.4-Windows-x64.zip
