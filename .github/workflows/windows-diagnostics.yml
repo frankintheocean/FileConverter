@@ -1,0 +1,26 @@
+name: Windows build diagnostics
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/windows-diagnostics.yml']
+permissions:
+  actions: read
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Retrieve native verification failure details
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          gh run view 37574331152 --log-failed > /tmp/windows-failure.log
+          tail -80 /tmp/windows-failure.log > /tmp/windows-summary.log
+          python3 - <<'PY'
+          from pathlib import Path
+          log = Path('/tmp/windows-summary.log').read_text()[-24000:]
+          log = log.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+          print('::error title=Native Windows verification diagnostic::' + log)
+          PY
