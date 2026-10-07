@@ -45,9 +45,14 @@ def main():
                 "docs/ATTRIBUTIONS.md",
             ):
                 archive.write(ROOT / name, name)
-            verification = artifacts / "windows-verification.json"
-            if verification.is_file():
-                archive.write(verification, "verification/windows-verification.json")
+            for name in (
+                "windows-verification.json",
+                "windows-installer-verification.json",
+                "windows-ui-tests.xml",
+            ):
+                verification = artifacts / name
+                if verification.is_file():
+                    archive.write(verification, "verification/" + name)
         paths.append(bundle)
     checksums = {}
     for path in paths:

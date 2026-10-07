@@ -66,10 +66,13 @@ the same artwork. Actual Windows shell rendering remains unverified.
 
 ## Windows release gates still outstanding
 
-No Windows executable or installer was produced on this Linux host. Inno Setup source,
+The native GitHub Windows runner produced and verified the 1.0.1 executable and installer.
+The downloaded 201,323,295-byte Windows ZIP matched its published SHA256 and passed CRC checks.
+Inno Setup source,
 PE metadata, vendor integrity checks and `scripts/windows_verify.ps1` are supplied;
-source inspection is not installer execution. These items require a Windows 10/11 x64
-runner and an audited redistributable FFmpeg vendor bundle:
+the first automated native install/repair/uninstall/reinstall and real conversion/size checks passed.
+Version 1.0.2 adds upgrade, damaged-executable/metadata repair, native UI and actual PE icon checks.
+Interactive items still require a Windows 10/11 x64 runner:
 
 - Native executable/installer build and actual installed launch.
 - Clean install, upgrade, interrupted/locked-file installation and same-version maintenance.
@@ -98,3 +101,19 @@ creates an actual installer and ZIP, runs installed repair/uninstall/reinstall a
 real conversion/size checks, and publishes only after those succeed. Its generated
 `verification/windows-verification.json` in a published Windows ZIP records the native
 runtime results. This host's Linux verification does not stand in for that report.
+
+
+## Native Windows release evidence
+
+The first native Windows workflow completed successfully and published a ZIP containing
+Setup, bundled application/engines, complete source and a runtime verification report.
+Its actual conversions produced MOV (172,743 bytes), GIF (405,574 bytes), extracted PNG
+(51,182 bytes), MP3 (82,590 bytes), and validated 10 MB/25 MB maximum outputs of
+9,067,528 / 22,883,065 bytes. Installed desktop startup, focus and safe shutdown passed.
+
+Final 1.0.2 native results are carried in `verification/windows-verification.json`,
+`verification/windows-installer-verification.json` and `verification/windows-ui-tests.xml`
+in the actual Windows ZIP. Release publication is blocked unless each native command
+succeeds; a later packaging command cannot mask failed verification. The cached backend
+is our previously source-built release, verified against a pinned whole-ZIP checksum
+and all vendor file checksums before executing it; its complete engine source is retained.

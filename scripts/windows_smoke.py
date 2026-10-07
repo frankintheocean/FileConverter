@@ -1,7 +1,9 @@
 """Real native Windows conversions and installed desktop lifecycle verification."""
 
+import hashlib
 import json
 import os
+import struct
 import subprocess
 import tempfile
 import threading
@@ -25,6 +27,44 @@ os.environ["PATH"] = str(installed / "vendor") + os.pathsep + os.environ["PATH"]
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
 app = QCoreApplication([])
 results = []
+
+
+def verify_executable_icon():
+    # Compare the executable's first icon group with every image in the bundled custom ICO.
+    import pefile
+
+    icon = (installed / "_internal/assets/app.ico").read_bytes()
+    count = struct.unpack_from("<HHH", icon)[2]
+    expected = set()
+    for index in range(count):
+        size, offset = struct.unpack_from("<II", icon, 6 + index * 16 + 8)
+        expected.add(hashlib.sha256(icon[offset : offset + size]).digest())
+    with pefile.PE(str(installed / "FileConverter.exe")) as executable:
+        image_resources = {}
+        group = None
+        for entry in executable.DIRECTORY_ENTRY_RESOURCE.entries:
+            if entry.id not in (3, 14):
+                continue
+            for item in entry.directory.entries:
+                data = item.directory.entries[0].data.struct
+                raw = executable.get_data(data.OffsetToData, data.Size)
+                if entry.id == 3:
+                    image_resources[item.id] = raw
+                elif group is None:
+                    group = raw
+        if group is None:
+            raise RuntimeError("Executable has no application icon group")
+        group_count = struct.unpack_from("<HHH", group)[2]
+        actual = set()
+        for index in range(group_count):
+            identifier = struct.unpack_from("<H", group, 6 + index * 14 + 12)[0]
+            actual.add(hashlib.sha256(image_resources[identifier]).digest())
+        if expected != actual or count != 9:
+            raise RuntimeError("Executable icon resources differ from the original custom app icon")
+    return {"custom_executable_icon_all_nine_sizes": True}
+
+
+results.append(verify_executable_icon())
 with tempfile.TemporaryDirectory(prefix="FileConverter café QA ") as directory:
     folder = Path(directory)
     store = Store(folder / "engine-state")

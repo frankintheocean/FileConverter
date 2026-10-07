@@ -111,7 +111,7 @@ def source_files():
 
 
 def source_archive(destination):
-    archive_path = ROOT / "artifacts/FileConverter-source-1.0.1.tar.gz"
+    archive_path = ROOT / "artifacts/FileConverter-source-1.0.2.tar.gz"
     archive_path.parent.mkdir(exist_ok=True)
     with tarfile.open(archive_path, "w:gz") as archive:
         for path in source_files():

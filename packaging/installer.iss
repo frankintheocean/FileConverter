@@ -1,4 +1,4 @@
-#define ProductVersion "1.0.1"
+#define ProductVersion "1.0.2"
 #define AppGuid "{A6B86057-4065-44EC-B12E-EC867BE5C486}"
 
 [Setup]
@@ -86,7 +86,14 @@ procedure InitializeWizard();
 begin
   RegQueryStringValue(HKCU, 'Software\FileConverter', 'InstallDir', ExistingDir);
   RegQueryStringValue(HKCU, 'Software\FileConverter', 'Version', ExistingVersion);
-  RegQueryDWordValue(HKCU, 'Software\FileConverter', 'DesktopShortcut', ExistingDesktop);
+  if ExistingDir = '' then
+    RegQueryStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#AppGuid}_is1', 'InstallLocation', ExistingDir);
+  if ExistingVersion = '' then
+    RegQueryStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#AppGuid}_is1', 'DisplayVersion', ExistingVersion);
+  if not RegQueryDWordValue(HKCU, 'Software\FileConverter', 'DesktopShortcut', ExistingDesktop) then
+  begin
+    if FileExists(ExpandConstant('{autodesktop}\FileConverter.lnk')) then ExistingDesktop := 1;
+  end;
   if ExistingDir <> '' then WizardForm.DirEdit.Text := ExistingDir;
   if ExistingVersion = '{#ProductVersion}' then
   begin

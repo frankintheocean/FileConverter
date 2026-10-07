@@ -14,7 +14,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Restore previously source-built and verified FFmpeg
+        id: vendor
+        run: python scripts/restore_verified_vendor.py
       - uses: msys2/setup-msys2@v2
+        if: steps.vendor.outputs.restored != 'true'
         with:
           msystem: MINGW64
           update: true
@@ -22,15 +26,21 @@ jobs:
             git make diffutils nasm autoconf automake libtool
             mingw-w64-x86_64-gcc mingw-w64-x86_64-pkgconf
       - name: Build FFmpeg from pinned upstream sources
+        if: steps.vendor.outputs.restored != 'true'
         shell: msys2 {0}
         run: bash scripts/build_ffmpeg_windows.sh
       - name: Record vendor checksums and install app build dependencies
         run: |
           python scripts/vendor_manifest.py vendor/windows-x64
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python -m pip install -e ".[dev]"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python -m ruff check .
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python -m ruff format --check .
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python -m mypy src/fileconverter
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Ensure Inno Setup compiler is installed
         run: |
           if (!(Test-Path "${env:ProgramFiles(x86)}/Inno Setup 6/ISCC.exe")) { choco install innosetup --yes --no-progress }
@@ -38,9 +48,15 @@ jobs:
         run: python scripts/build.py --vendor vendor/windows-x64 --installer
       - name: Verify actual installed app, repair and uninstall
         run: |
-          ./scripts/windows_verify.ps1
+          ./scripts/windows_verify.ps1 -PreviousInstaller build/previous-Setup.exe
           python scripts/windows_smoke.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $env:PATH = (Join-Path $env:LOCALAPPDATA 'Programs/FileConverter/vendor') + ';' + $env:PATH
+          $env:QT_QPA_PLATFORM = 'offscreen'
+          python -m pytest -q tests/test_ui.py --junitxml=artifacts/windows-ui-tests.xml
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python scripts/release_zip.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - uses: actions/upload-artifact@v4
         with:
           name: FileConverter-Windows-x64
@@ -49,6 +65,8 @@ jobs:
             artifacts/*SHA256.json
             artifacts/*Setup.exe
             artifacts/windows-verification.json
+            artifacts/windows-installer-verification.json
+            artifacts/windows-ui-tests.xml
       - name: Publish verified Windows release
         shell: bash
         if: startsWith(github.ref, 'refs/tags/v')
