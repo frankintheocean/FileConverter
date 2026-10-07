@@ -24,10 +24,14 @@ jobs:
         shell: bash
         run: |
           gh run view "$INSPECT_RUN" --log-failed > /tmp/windows-failure.log
-          tail -80 /tmp/windows-failure.log > /tmp/windows-summary.log
+          tail -60 /tmp/windows-failure.log > /tmp/windows-summary.log
           python3 - <<'PY'
+          import re
           from pathlib import Path
-          log = Path('/tmp/windows-summary.log').read_text()[-24000:]
-          log = log.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
-          print('::error title=Native Windows verification diagnostic::' + log)
+          lines = Path('/tmp/windows-summary.log').read_text().splitlines()
+          log = '\n'.join(re.sub(r'^\S+Z ', '', line.split('\t', 2)[-1]) for line in lines)
+          log = re.sub(r'\x1b\[[0-9;]*m', '', log)
+          for index in range(0, len(log), 1800):
+              chunk = log[index:index+1800].replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+              print('::error title=Windows failure detail ' + str(index // 1800 + 1) + '::' + chunk)
           PY
