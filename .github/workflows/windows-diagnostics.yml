@@ -1,0 +1,37 @@
+name: Windows build diagnostics
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/windows-diagnostics.yml']
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: Completed Windows workflow run to inspect
+        required: true
+        type: string
+permissions:
+  actions: read
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Retrieve native verification failure details
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          INSPECT_RUN: ${{ inputs.run_id || '37611198936' }}
+        shell: bash
+        run: |
+          gh run view "$INSPECT_RUN" --log-failed > /tmp/windows-failure.log
+          tail -60 /tmp/windows-failure.log > /tmp/windows-summary.log
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          lines = Path('/tmp/windows-summary.log').read_text().splitlines()
+          log = '\n'.join(re.sub(r'^\S+Z ', '', line.split('\t', 2)[-1]) for line in lines)
+          log = re.sub(r'\x1b\[[0-9;]*m', '', log)
+          for index in range(0, len(log), 1800):
+              chunk = log[index:index+1800].replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+              print('::error title=Windows failure detail ' + str(index // 1800 + 1) + '::' + chunk)
+          PY
