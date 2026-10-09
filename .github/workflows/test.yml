@@ -1,0 +1,21 @@
+name: Tests
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Native test dependencies
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg libreoffice libegl1 libopengl0
+      - run: python -m pip install -e '.[dev]'
+      - run: python -m ruff check src scripts tests
+      - run: python -m ruff format --check src scripts tests
+      - run: python -m mypy src/fileconverter
+      - run: python -m pytest -q
+        env:
+          QT_QPA_PLATFORM: offscreen
