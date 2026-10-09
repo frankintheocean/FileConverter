@@ -1,0 +1,108 @@
+name: Windows installer and release
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/cache/restore@v4
+        id: compiled_backend
+        with:
+          path: |
+            vendor/windows-x64
+            build/previous-Setup.exe
+          key: native-backend-v2-${{ hashFiles('scripts/build_ffmpeg_windows.sh', 'scripts/restore_verified_vendor.py') }}
+      - name: Restore previously source-built and verified FFmpeg
+        id: vendor
+        if: steps.compiled_backend.outputs.cache-hit != 'true'
+        run: python scripts/restore_verified_vendor.py
+      - uses: msys2/setup-msys2@v2
+        if: steps.compiled_backend.outputs.cache-hit != 'true' && steps.vendor.outputs.restored != 'true'
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            git make diffutils nasm autoconf automake libtool
+            mingw-w64-x86_64-gcc mingw-w64-x86_64-pkgconf
+            mingw-w64-x86_64-meson mingw-w64-x86_64-ninja
+      - name: Build FFmpeg from pinned upstream sources
+        if: steps.compiled_backend.outputs.cache-hit != 'true' && steps.vendor.outputs.restored != 'true'
+        shell: msys2 {0}
+        run: bash scripts/build_ffmpeg_windows.sh
+      - name: Record vendor checksums and install app build dependencies
+        run: |
+          if ('${{ steps.compiled_backend.outputs.cache-hit }}' -eq 'true') {
+            python scripts/restore_verified_vendor.py --verify-cache
+          } else {
+            python scripts/vendor_manifest.py vendor/windows-x64
+          }
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -m pip install -e ".[dev]"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -m ruff check .
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -m ruff format --check .
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -m mypy src/fileconverter
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - uses: actions/cache/save@v4
+        if: steps.compiled_backend.outputs.cache-hit != 'true'
+        with:
+          path: |
+            vendor/windows-x64
+            build/previous-Setup.exe
+          key: ${{ steps.compiled_backend.outputs.cache-primary-key }}
+      - name: Ensure Inno Setup compiler is installed
+        # Keep the checksummed source-built backend available even if app QA fails.
+        # Release publication remains gated by all Windows verification steps.
+        run: |
+          if (!(Test-Path "${env:ProgramFiles(x86)}/Inno Setup 6/ISCC.exe")) { choco install innosetup --yes --no-progress }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FileConverter-Source-Built-Backend
+          path: vendor/windows-x64
+      - name: Build Windows executable, maintenance installer and complete release ZIP
+        run: python scripts/build.py --vendor vendor/windows-x64 --installer
+      - name: Verify actual installed app, repair and uninstall
+        run: |
+          ./scripts/windows_verify.ps1 -PreviousInstaller build/previous-Setup.exe
+          python scripts/windows_smoke.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $env:PATH = (Join-Path $env:LOCALAPPDATA 'Programs/FileConverter/vendor') + ';' + $env:PATH
+          $env:QT_QPA_PLATFORM = 'offscreen'
+          python -m pytest -q tests/test_ui.py --junitxml=artifacts/windows-ui-tests.xml
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -m pytest -q tests/test_engine.py -k 'av1 or m4v or collision or unsupported_hardlink' --junitxml=artifacts/windows-regression-tests.xml
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python scripts/release_zip.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FileConverter-Windows-x64
+          path: |
+            artifacts/*.zip
+            artifacts/*SHA256.json
+            artifacts/*Setup.exe
+            artifacts/windows-verification.json
+            artifacts/windows-installer-verification.json
+            artifacts/windows-ui-tests.xml
+            artifacts/windows-regression-tests.xml
+      - name: Publish verified Windows release
+        shell: bash
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh release create "${{ github.ref_name }}"
+          artifacts/*Windows-x64.zip artifacts/*Source.zip artifacts/*SHA256.json
+          --verify-tag --title "FileConverter ${{ github.ref_name }} for Windows"
+          --notes-file docs/RELEASE.md
