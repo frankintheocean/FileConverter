@@ -1,0 +1,103 @@
+"""Reuse our previously verified native FFmpeg build, pinned by complete release SHA256."""
+
+import argparse
+import hashlib
+import os
+import shutil
+import stat
+import subprocess
+import tempfile
+import urllib.error
+import urllib.request
+import zipfile
+from pathlib import Path, PurePosixPath
+
+from build import ROOT, verify_vendor
+
+URL = "https://github.com/frankintheocean/FileConverter/releases/download/v1.0.7/FileConverter-1.0.7-Windows-x64.zip"
+SHA256 = "ee7bf571c506bcb8dd0e487a1d882f4f3b400ef938a9e9d7e9e7a3cf623363d1"
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--verify-cache", action="store_true")
+    args = parser.parse_args()
+    if os.name != "nt":
+        raise SystemExit("Vendor restoration is for the native Windows build")
+    if args.verify_cache:
+        verify_vendor(ROOT / "vendor/windows-x64")
+        print("Verified cached native backend against all recorded checksums.")
+        return
+    build = ROOT / "build"
+    build.mkdir(exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix="vendor-cache-", dir=build) as directory:
+        folder = Path(directory)
+        archive_path = folder / "verified-release.zip"
+        try:
+            with (
+                urllib.request.urlopen(URL, timeout=120) as response,
+                archive_path.open("wb") as output,
+            ):
+                shutil.copyfileobj(response, output, length=1024 * 1024)
+        except (urllib.error.URLError, TimeoutError) as error:
+            print(f"Previous verified build unavailable; compiling pinned source: {error}")
+            output_file = os.environ.get("GITHUB_OUTPUT")
+            if output_file:
+                with open(output_file, "a", encoding="utf-8") as output:
+                    output.write("restored=false\n")
+            return
+        with archive_path.open("rb") as file:
+            if hashlib.file_digest(file, "sha256").hexdigest() != SHA256:
+                raise ValueError("Prior release checksum mismatch; refusing binary reuse")
+        vendor = folder / "vendor"
+        total = 0
+        with zipfile.ZipFile(archive_path) as archive:
+            for entry in archive.infolist():
+                if not entry.filename.startswith("Application/vendor/") or entry.is_dir():
+                    continue
+                relative = PurePosixPath(entry.filename.removeprefix("Application/vendor/"))
+                if (
+                    relative.is_absolute()
+                    or ".." in relative.parts
+                    or "\\" in str(relative)
+                    or stat.S_ISLNK(entry.external_attr >> 16)
+                ):
+                    raise ValueError("Unsafe path in verified vendor archive")
+                total += entry.file_size
+                if total > 512 * 1024 * 1024:
+                    raise ValueError("Vendor extraction limit exceeded")
+                destination = vendor.joinpath(*relative.parts)
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                with archive.open(entry) as source, destination.open("wb") as output:
+                    shutil.copyfileobj(source, output, length=1024 * 1024)
+            previous = "FileConverter-1.0.7-Windows-x64-Setup.exe"
+            with (
+                archive.open(previous) as source,
+                (build / "previous-Setup.exe").open("wb") as output,
+            ):
+                shutil.copyfileobj(source, output, length=1024 * 1024)
+        verify_vendor(vendor)
+        decoders = subprocess.run(
+            [str(vendor / "ffmpeg.exe"), "-hide_banner", "-decoders"],
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=30,
+        ).stdout
+        if "libdav1d" not in decoders:
+            print("Prior verified backend lacks software AV1 decoding; rebuilding pinned sources.")
+            if os.environ.get("GITHUB_OUTPUT"):
+                with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+                    output.write("restored=false\n")
+            return
+        shutil.copytree(vendor, ROOT / "vendor/windows-x64", dirs_exist_ok=True)
+    if os.environ.get("GITHUB_OUTPUT"):
+        with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+            output.write("restored=true\n")
+    print(
+        "Restored source-built FFmpeg and prior installer after pinned release and per-file verification."
+    )
+
+
+if __name__ == "__main__":
+    main()
